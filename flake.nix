@@ -28,9 +28,25 @@
           cargo
           rustfmt
           clippy
+          bacon
           rust-analyzer
+          lld_18
+          wasm-bindgen-cli
         ];
       };
+
+      defaultPackage.x86_64-linux =
+        pkgs.stdenv.mkDerivation {
+        name = "wasm-target";
+        src = ./wasm-client;
+        buildInputs = [pkgs.lld_18 pkgs.cargo pkgs.rustc pkgs.wasm-bindgen-cli];
+        buildPhase = "
+            cargo build --target wasm32-unknown-unknown --release
+            wasm-bindgen ../target/wasm32-unknown-unknown/release/wasm_client.wasm --out-dir target-wasm
+        ";
+        installPhase = "mkdir -p $out/bin;";
+      };
+
       formatter.x86_64-linux = treefmt-nix.lib.mkWrapper
         nixpkgs.legacyPackages.x86_64-linux
         {
